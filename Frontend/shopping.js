@@ -9,7 +9,7 @@ $w.onReady(function () {
 	let sororityText = $w("#text81");
 	sororityText.hide();
 
-	// Change "FOR SISTERS" button to "FOR BRANDS and link back to home page"
+	// Change "FOR SISTERS" button to "FOR BRANDS" and link back to home page
 	$w("#button5").label = "FOR BRANDS";
 	$w("#button5").onClick(() => {
 		// Remove selectedChapter from storage (when returning to the FOR BRANDS/HOME page) so that visitors can change their chapter next visit
@@ -30,8 +30,13 @@ $w.onReady(function () {
 					let nickname = results.items[0].nickname;
 					sororityText.text = "x " + nickname;
 					sororityText.show();
-					// Log a session for the selected chapter (for future batch processing)
-					logSessionStart(selectedChapter);
+					local.setItem("nickname", nickname);
+					session.setItem("nickname", nickname);
+					if (session.getItem("sessionCounted") !== "true") {
+						// Log a session for the selected chapter (for future batch processing)
+						logSessionStart(selectedChapter);
+						session.setItem("sessionCounted", "true");
+					}
 				} else {
 					// If the selected chapter does not exist in the database, redirect to the sorority selection page
 					session.removeItem('selectedChapter');
@@ -46,4 +51,7 @@ $w.onReady(function () {
 		// If no chapter association is found, redirect to sorority selection page
 		wixLocation.to("/sorority-selection");
 	}
+
+	// Make the central Adelfi logo link back to the shopping page
+	$w("#vectorImage22").link = "/shopping";
 });
