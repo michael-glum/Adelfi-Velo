@@ -1,8 +1,8 @@
 // Velo API Reference: https://www.wix.com/velo/reference/api-overview/introduction
 import wixLocation from 'wix-location';
 import { local, session } from 'wix-storage-frontend';
-import wixData from 'wix-data';
 import { logSessionStart } from 'backend/session-log-handler.web';
+import { getChapterNickname } from 'backend/sororities-server.web';
 
 $w.onReady(function () {
 	// Hide "x Sorority" text until the correct nickname has been retrieved from the database
@@ -20,14 +20,12 @@ $w.onReady(function () {
 
 	// Retrieve visitor's sorority chapter
 	let selectedChapter = local.getItem('selectedChapter') || session.getItem('selectedChapter');
-	// Replace "x Sorority" text with correct nickname from database and display it
+	
 	if (selectedChapter) {
-		wixData.query('Sororities')
-			.eq('chapter', selectedChapter)
-			.find()
-			.then(results => {
-				if(results.items.length > 0) {
-					let nickname = results.items[0].nickname;
+		// Replace "x Sorority" text with correct nickname from database and display it
+		getChapterNickname(selectedChapter)
+			.then(nickname => {
+				if (nickname) {
 					sororityText.text = "x " + nickname;
 					sororityText.show();
 					local.setItem("nickname", nickname);
@@ -37,6 +35,7 @@ $w.onReady(function () {
 						logSessionStart(selectedChapter);
 						session.setItem("sessionCounted", "true");
 					}
+					console.log("nickname:" + nickname);
 				} else {
 					// If the selected chapter does not exist in the database, redirect to the sorority selection page
 					session.removeItem('selectedChapter');
@@ -45,8 +44,8 @@ $w.onReady(function () {
 				}
 			})
 			.catch(err => {
-				console.log(err);
-			})
+				console.log("Error fetching chapter nickname:", err);
+			});
 	} else {
 		// If no chapter association is found, redirect to sorority selection page
 		wixLocation.to("/sorority-selection");
